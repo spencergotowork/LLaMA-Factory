@@ -395,7 +395,7 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to train model in purely bf16 precision (without AMP)."},
     )
-    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto"] = field(
+    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto", "grpo"] = field(
         default="sft",
         metadata={"help": "Which stage will be performed in training."},
     )
@@ -447,6 +447,17 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to compute effective tokens per second."},
     )
+    # GRPO特定参数
+    grpo_beta: Optional[float] = field(
+        default=0.1,
+        metadata={"help": "The beta parameter for GRPO algorithm."}
+    )
+    
+    grpo_group_size: Optional[int] = field(
+        default=4,
+        metadata={"help": "Group size for GRPO comparison."}
+    )
+
 
     def __post_init__(self):
         def split_arg(arg):
@@ -467,11 +478,11 @@ class FinetuningArguments(
         assert self.ref_model_quantization_bit in [None, 8, 4], "We only accept 4-bit or 8-bit quantization."
         assert self.reward_model_quantization_bit in [None, 8, 4], "We only accept 4-bit or 8-bit quantization."
 
-        if self.stage == "ppo" and self.reward_model is None:
-            raise ValueError("`reward_model` is necessary for PPO training.")
+        if self.stage in ["ppo", "grpo"] and self.reward_model is None:
+            raise ValueError("`reward_model` is necessary for PPO/GRPO training.")
 
-        if self.stage == "ppo" and self.reward_model_type == "lora" and self.finetuning_type != "lora":
-            raise ValueError("`reward_model_type` cannot be lora for Freeze/Full PPO training.")
+        if self.stage in ["ppo", "grpo"] and self.reward_model_type == "lora" and self.finetuning_type != "lora":
+            raise ValueError("`reward_model_type` cannot be lora for Freeze/Full PPO/GRPO training.")
 
         if self.stage == "dpo" and self.pref_loss != "sigmoid" and self.dpo_label_smoothing > 1e-6:
             raise ValueError("`dpo_label_smoothing` is only valid for sigmoid loss function.")

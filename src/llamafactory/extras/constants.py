@@ -78,6 +78,7 @@ TRAINING_STAGES = {
     "Supervised Fine-Tuning": "sft",
     "Reward Modeling": "rm",
     "PPO": "ppo",
+    "GRPO": "grpo",
     "DPO": "dpo",
     "KTO": "kto",
     "Pre-Training": "pt",

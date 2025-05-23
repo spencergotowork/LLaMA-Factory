@@ -123,6 +123,24 @@ def create_app(chat_model: "ChatModel") -> "FastAPI":
 
     return app
 
+    from ..train.grpo import run_grpo_workflow
+
+    @app.post("/v1/train/grpo")
+    async def create_grpo_job(request: TrainRequest):
+        """创建GRPO训练任务"""
+        try:
+            # 设置参数
+            os.environ.update(request.model_dump())
+            
+            # 异步运行训练
+            thread = Thread(target=run_grpo_workflow)
+            thread.start()
+            
+            return {"message": "GRPO training started successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+
 
 def run_api() -> None:
     chat_model = ChatModel()
